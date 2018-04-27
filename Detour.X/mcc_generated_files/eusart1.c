@@ -46,29 +46,12 @@
 */
 #include "eusart1.h"
 
-/**
-  Section: Macro Declarations
-*/
-
-#define EUSART1_TX_BUFFER_SIZE 8
-#define EUSART1_RX_BUFFER_SIZE 8
-
-/**
-  Section: Global Variables
-*/
-
-volatile uint8_t eusart1RxHead = 0;
-volatile uint8_t eusart1RxTail = 0;
-volatile uint8_t eusart1RxBuffer[EUSART1_RX_BUFFER_SIZE];
-volatile uint8_t eusart1RxCount;
 
 /**
   Section: EUSART1 APIs
 */
 void EUSART1_Initialize(void)
 {
-    // disable interrupts before changing states
-    PIE3bits.RC1IE = 0;
     // Set the EUSART1 module to the options selected in the user interface.
 
     // ABDOVF no_overflow; SCKP Non-Inverted; BRG16 16bit_generator; WUE disabled; ABDEN disabled; 
@@ -87,33 +70,24 @@ void EUSART1_Initialize(void)
     SP1BRGH = 0x01;
 
 
-
-    eusart1RxHead = 0;
-    eusart1RxTail = 0;
-    eusart1RxCount = 0;
-
-    // enable receive interrupt
-    PIE3bits.RC1IE = 1;
 }
 
 uint8_t EUSART1_Read(void)
 {
-    uint8_t readValue  = 0;
+    while(!PIR3bits.RC1IF)
+    {
+    }
+
     
-    while(0 == eusart1RxCount)
+    if(1 == RC1STAbits.OERR)
     {
+        // EUSART1 error - restart
+
+        RC1STAbits.CREN = 0; 
+        RC1STAbits.CREN = 1; 
     }
 
-    readValue = eusart1RxBuffer[eusart1RxTail++];
-    if(sizeof(eusart1RxBuffer) <= eusart1RxTail)
-    {
-        eusart1RxTail = 0;
-    }
-    PIE3bits.RC1IE = 0;
-    eusart1RxCount--;
-    PIE3bits.RC1IE = 1;
-
-    return readValue;
+    return RC1REG;
 }
 
 void EUSART1_Write(uint8_t txData)
@@ -127,25 +101,6 @@ void EUSART1_Write(uint8_t txData)
 
 
 
-void EUSART1_Receive_ISR(void)
-{
-    
-    if(1 == RC1STAbits.OERR)
-    {
-        // EUSART1 error - restart
-
-        RC1STAbits.CREN = 0;
-        RC1STAbits.CREN = 1;
-    }
-
-    // buffer overruns are ignored
-    eusart1RxBuffer[eusart1RxHead++] = RC1REG;
-    if(sizeof(eusart1RxBuffer) <= eusart1RxHead)
-    {
-        eusart1RxHead = 0;
-    }
-    eusart1RxCount++;
-}
 /**
   End of File
 */

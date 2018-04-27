@@ -65,15 +65,6 @@
 
 #define EUSART1_DataReady  (PIR3bits.RC1IF)
 
-/**
-  Section: Data Type Definitions
-*/
-
-/**
- Section: Global variables
- */
-extern volatile uint8_t eusart1TxBufferRemaining;
-extern volatile uint8_t eusart1RxCount;
 
 /**
   Section: EUSART1 APIs
@@ -142,26 +133,6 @@ uint8_t EUSART1_Read(void);
 void EUSART1_Write(uint8_t txData);
 
 
-/**
-  @Summary
-    Maintains the driver's receiver state machine and implements its ISR
-
-  @Description
-    This routine is used to maintain the driver's internal receiver state
-    machine.This interrupt service routine is called when the state of the
-    receiver needs to be maintained in a non polled manner.
-
-  @Preconditions
-    EUSART1_Initialize() function should have been called
-    for the ISR to execute correctly.
-
-  @Param
-    None
-
-  @Returns
-    None
-*/
-void EUSART1_Receive_ISR(void);
 
 #ifdef __cplusplus  // Provide C++ Compatibility
 

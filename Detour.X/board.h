@@ -7,28 +7,31 @@
 
 #ifndef BOARD_H
 #define	BOARD_H
+#include <xc.h>
 #include "colors.h"
+#include "mcc_generated_files/mcc.h"
 
-char *destinations[] = {"Grand Canyon", "Yellowstone"};
+char *destinations[] = {"Dino Diner", "Mystery Tree", "Big Foot", "Largest Fish", "Paul Bunyan", "Santa's Village", "Reptile Ranch", "Teepee Town"};
 
 typedef struct player {
     color player_color;
-    uint8_t visited;
-    uint16_t position;
+    unsigned char visited;
+    unsigned char position;
 } player;
 
 typedef struct board_state {
-    uint8_t num_players;
-    uint8_t is_finished;
-    uint16_t current_move;
+    unsigned char num_players;
+    unsigned char is_finished;
+    unsigned int current_move;
     player players[4];
 } board_state;
 
-typedef struct space {
-    uint8_t mask;
-};
 
+void diskButtonHandler(unsigned char num);
+void selectButtonHandler();
 void board_init();
+uint8_t selectButtonPressed();
+void board_update();
 
 
 #endif	/* BOARD_H */

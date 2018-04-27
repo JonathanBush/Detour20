@@ -21,6 +21,7 @@ void motor_rotate(unsigned char instance, unsigned char clockwise)
     if (clockwise) {
         MtrDir_SetHigh();
     }
+    __delay_ms(100);
     switch (instance) {
         case 0:
             Mtr1_SetHigh();

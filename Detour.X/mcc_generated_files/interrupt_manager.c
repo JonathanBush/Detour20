@@ -63,9 +63,9 @@ void interrupt INTERRUPT_InterruptManager (void)
     }
     else if(INTCONbits.PEIE == 1)
     {
-        if(PIE3bits.RC1IE == 1 && PIR3bits.RC1IF == 1)
+        if(PIE4bits.TMR2IE == 1 && PIR4bits.TMR2IF == 1)
         {
-            EUSART1_Receive_ISR();
+            TMR2_ISR();
         } 
         else
         {

@@ -1,7 +1,7 @@
 #include "mcc_generated_files/mcc.h"
 #include "led.h"
 
-#define MAX_LEDS 40
+#define MAX_LEDS 70
 
 color leds[MAX_LEDS];
 unsigned int num_leds;
@@ -10,7 +10,7 @@ void led_init(unsigned int num) {
     int i;
     num_leds = num;
     for (i = 0; i < MAX_LEDS; ++i) {
-        leds[i] = (unsigned long)0x00;
+        leds[i] = (unsigned long)0x000000;
     }
 }
 
@@ -33,12 +33,9 @@ void led_set_all(color c) {
     }
 }
 
-unsigned char led_get(unsigned int led, enum c_channel c) {
-    return (unsigned char)(0xFF & (leds[led] >> c));
-}
-
 
 void led_write(color c) {
+    INTERRUPT_GlobalInterruptDisable();
     int j;
     unsigned long val = *((unsigned long *)(&c));
     // the WS2812 wants bits in the order of:
@@ -76,6 +73,7 @@ void led_write(color c) {
         // and then right shift to get the next bit
         val = val >> (unsigned char)1;
     }
+    INTERRUPT_GlobalInterruptEnable();
 }
 
 void led_update() {
@@ -84,4 +82,16 @@ void led_update() {
     for (int i = 0; i < num_leds; ++i) {
         led_write(leds[i]);
     }
+}
+
+void led_shift_up()
+{
+    int i;
+    color temp = leds[num_leds - 1];
+    for (i = num_leds - 1; i > 0; --i) {
+        leds[i] = leds[i - 1];
+        
+        
+    }
+    leds[0] = temp;
 }

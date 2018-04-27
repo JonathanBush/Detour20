@@ -131,9 +131,9 @@ void lcd_writestr(char *a)
 
 void lcd_setbacklight(unsigned char red, unsigned char green, unsigned char blue)
 {
-    PWM1_LoadDutyValue(0xFFFF - ((uint16_t)red   << 8));
-    PWM3_LoadDutyValue(0xFFFF - ((uint16_t)green << 8));
-    PWM4_LoadDutyValue(0xFFFF - ((uint16_t)blue  << 8));
+    PWM1_LoadDutyValue(0x03FF - ((uint16_t)red   << 2));
+    PWM3_LoadDutyValue(0x03FF - ((uint16_t)green << 2));
+    PWM4_LoadDutyValue(0x03FF - ((uint16_t)blue  << 2));
 }
 
 void lcd_shift_right()

@@ -46,7 +46,7 @@
 #include <xc.h>
 #include "pin_manager.h"
 #include "stdbool.h"
-
+#include "../lcd.h"
 
 void (*IOCAF0_InterruptHandler)(void);
 void (*IOCAF1_InterruptHandler)(void);
@@ -60,7 +60,7 @@ void PIN_MANAGER_Initialize(void)
     /**
     LATx registers
     */   
-    LATA = 0x00;    
+    LATA = 0x1F;    
     LATB = 0x00;    
     LATC = 0x00;    
 
@@ -104,11 +104,11 @@ void PIN_MANAGER_Initialize(void)
     IOCAFbits.IOCAF3 = 0;
     IOCAFbits.IOCAF4 = 0;
     // interrupt on change for group IOCAN - negative
-    IOCANbits.IOCAN0 = 0;
-    IOCANbits.IOCAN1 = 0;
-    IOCANbits.IOCAN2 = 0;
-    IOCANbits.IOCAN3 = 0;
-    IOCANbits.IOCAN4 = 0;
+    IOCANbits.IOCAN0 = 1;
+    IOCANbits.IOCAN1 = 1;
+    IOCANbits.IOCAN2 = 1;
+    IOCANbits.IOCAN3 = 1;
+    IOCANbits.IOCAN4 = 1;
     // interrupt on change for group IOCAP - positive
     IOCAPbits.IOCAP0 = 0;
     IOCAPbits.IOCAP1 = 0;
@@ -139,6 +139,7 @@ void PIN_MANAGER_Initialize(void)
 void PIN_MANAGER_IOC(void)
 {   
     // interrupt on change for pin IOCAF0
+    
     if(IOCAFbits.IOCAF0 == 1)
     {
         IOCAF0_ISR();  
@@ -181,6 +182,7 @@ void IOCAF0_ISR(void) {
     // Call the interrupt handler for the callback registered at runtime
     if(IOCAF0_InterruptHandler)
     {
+        
         IOCAF0_InterruptHandler();
     }
     IOCAFbits.IOCAF0 = 0;
@@ -197,6 +199,8 @@ void IOCAF0_SetInterruptHandler(void (* InterruptHandler)(void)){
   Default interrupt handler for IOCAF0
 */
 void IOCAF0_DefaultInterruptHandler(void){
+    lcd_setpos(0,0);
+    lcd_writestr("pinterrupt");
     // add your IOCAF0 interrupt custom code
     // or set custom function using IOCAF0_SetInterruptHandler()
 }
