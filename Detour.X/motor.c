@@ -24,13 +24,13 @@ void motor_rotate(unsigned char instance, unsigned char clockwise)
     __delay_ms(100);
     switch (instance) {
         case 0:
-            Mtr1_SetHigh();
+            Mtr3_SetHigh();
             break;
         case 1:
-            Mtr2_SetHigh();
+            Mtr1_SetHigh();
             break;
         case 2:
-            Mtr3_SetHigh();
+            Mtr2_SetHigh();
             break;
         case 3:
             Mtr4_SetHigh();

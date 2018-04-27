@@ -11,7 +11,7 @@
 #include "colors.h"
 #include "mcc_generated_files/mcc.h"
 
-char *destinations[] = {"Dino Diner", "Mystery Tree", "Big Foot", "Largest Fish", "Paul Bunyan", "Santa's Village", "Reptile Ranch", "Teepee Town"};
+char *destinations[] = {"Teepee Town", "Reptile Ranch", "Largest Fish", "Dino Diner", "Santa's Village", "Mystery Trees", "Paul Bunyan", "Big Foot"};
 
 typedef struct player {
     color player_color;

@@ -54,21 +54,6 @@
 
 
 
-/* actions performed when the UART receives a byte */
-void uartRecvHandler(void)
-{ 
-    /* Code implemented by Syed here*/
-    uint8_t num = EUSART1_Read();
-   if (num >=0 || num <=3)
-   {
-       diskButtonHandler(num);
-   }
-   else if (num = 4)
-   {
-       selectButtonHandler();
-   }
-}
-
 
 void main(void)
 {
@@ -110,12 +95,16 @@ void main(void)
     //ch = PORTA;
     
     board_init();
-    led_update();
+
     int ct = 0;
     while (1)
     {
         board_update();
         
+        //motor_flip(0);
+        //motor_flip(1);
+        //motor_flip(2);
+        //motor_flip(3);
     }
 }
 /**

@@ -6,6 +6,7 @@
 #include "board.h"
 #include "timer.h"
 #include "mcc_generated_files/mcc.h"
+#include "mcc_generated_files/eusart1.h"
 #include <stdio.h>
 
 typedef struct space {
@@ -21,6 +22,15 @@ static uint8_t map[64] = {
     18, 19, 20, 21, 22, 23, 24, 0x83, 26, 27, 28, 31, 29, 30, 32, 33, 34, 0x82,
     36, 37, 43, 39, 40, 41, 38, 45, 46, 47, 48, 49, 50, 51, 52, 0x80, 54, 55,
     56, 57, 0x83, 59, 60, 61, 62, 63, 0x82
+};
+
+static uint8_t properties[64] = {
+    0x00, 0x00, 0xD0, 0xA4, 0x00, 0x00, 0x00, 0x00, 0x00, 0xD1, 0x00, 0xA4,
+    0x00, 0xB0, 0x00, 0x00, 0x00, 0x00, 0x00, 0xD2, 0x00, 0xA3, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0xA5, 0x00, 0x00, 0x00, 0xD3, 0xB0, 0x00, 0x00, 0x00,
+    0x00, 0xA5, 0xB0, 0x00, 0x00, 0x00, 0x00, 0xD4, 0x00, 0xA3, 0x00, 0x00,
+    0xD5, 0x00, 0x00, 0xA3, 0x00, 0x00, 0xB0, 0xD6, 0x00, 0xB0, 0xD7, 0x00,
+    0xB0, 0x00, 0xA3, 0x00
 };
 
 static uint8_t disk_positions[4] = {0, 0, 0, 0};
@@ -52,6 +62,27 @@ void selectButtonHandler(void)
         timer_set(4, 500);
         btnflags |= 0x10;
         
+    }
+}
+
+/* actions performed when the UART receives a byte */
+void uartRecvHandler(void)
+{ 
+    /* Code implemented by Syed here*/
+    uint8_t num = EUSART1_Read();
+   if (num >=0 || num <=3)
+   {
+       diskButtonHandler(num);
+   }
+   else if (num = 4)
+   {
+       selectButtonHandler();
+   }
+}
+
+void uart_update() {
+    if (EUSART1_DataReady) {
+        uartRecvHandler();
     }
 }
 
@@ -121,33 +152,34 @@ uint8_t selectPlayers() {
     uint8_t last = btnflags;
     uint8_t ct = 0;
     do {
-    while (!selectButtonPressed()) {
-        if (last != btnflags) {
-            last = btnflags;
-            lcd_clear();
-            if (btnflags & 0x01) {
-                lcd_setpos(1,0);
-                lcd_writestr("Yellow");
-            }
-            if (btnflags & 0x02) {
-                lcd_setpos(1,11);
-                lcd_writestr("Blue");
-            }
-            if (btnflags & 0x04) {
-                lcd_setpos(0,12);
-                lcd_writestr("Red");
-            }
-            if (btnflags & 0x08) {
-                lcd_setpos(0,0);
-                lcd_writestr("Purple");
+        while (!selectButtonPressed()) {
+            uart_update();
+            if (last != btnflags) {
+                last = btnflags;
+                lcd_clear();
+                if (btnflags & 0x01) {
+                    lcd_setpos(1,0);
+                    lcd_writestr("Yellow");
+                }
+                if (btnflags & 0x02) {
+                    lcd_setpos(1,11);
+                    lcd_writestr("Blue");
+                }
+                if (btnflags & 0x04) {
+                    lcd_setpos(0,12);
+                    lcd_writestr("Red");
+                }
+                if (btnflags & 0x08) {
+                    lcd_setpos(0,0);
+                    lcd_writestr("Purple");
+                }
             }
         }
-    }
-    uint8_t i = 0;
-    ct = 0;
-    for (; i < 4; ++i) {
-        ct += (btnflags & (0x01 << i)) != 0;
-    }
+        uint8_t i = 0;
+        ct = 0;
+        for (; i < 4; ++i) {
+            ct += ((btnflags & (0x01 << i)) != 0);
+        }
     } while (ct < 2);
     state.num_players = ct;
     init_players(btnflags & 0x0F);
@@ -168,12 +200,13 @@ void board_init()
     timer_init();
     lcd_init();
     led_init(65);
+    led_update();
     lcd_setbacklight(127,127,100);
     lcd_setpos(0,0);
     lcd_writestr("Detour 2.1!");
     
     button_isr_init();
-    motor_init();
+    //motor_init();
     selectPlayers();
 }
 
@@ -185,6 +218,7 @@ uint8_t roll() {
     btnflags = 0;
     uint8_t ct = 0;
     while (!selectButtonPressed()) {
+        uart_update();
         ++ct;
     }
     lcd_clear();
@@ -260,13 +294,28 @@ void move_player(player *p, uint8_t spaces)
         __delay_ms(500);
     }
 }
-void board_update() 
 
+void board_update() 
 {
     update_road();
     player *p = &state.players[state.current_move % state.num_players];
     lcd_setbacklight((uint8_t)((p->player_color >> 8) & 0xFF), (uint8_t)((p->player_color) & 0xFF), (uint8_t)((p->player_color >> 16)));
-    move_player(p, roll());
+    uint8_t result = roll();
+    if (result < 7) {
+        move_player(p, result);
+    } else {
+        btnflags = 0x00;
+        while (!(btnflags & 0x0F)) {
+            uart_update();
+        }
+        uint8_t i;
+        for (i = 0; i < 4; ++i) {
+            if (btnflags & (0x01 << i)) {
+                disk_positions[i] = !disk_positions[i];
+                motor_rotate(i, disk_positions[i]);
+            }
+        }
+    }
     state.current_move++;
 }
 
