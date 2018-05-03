@@ -281,7 +281,7 @@ void move_player(player *p, uint8_t spaces)
     uint8_t ct;
     for (ct = 0; ct < spaces; ++ct) {
         uint8_t next = map[p->position];
-        if (0x80 & next) {
+        if (0x80 & next) {  /* next is disk */
             lcd_setpos(1,0);
             char out[17];
             
@@ -291,7 +291,34 @@ void move_player(player *p, uint8_t spaces)
         }
         p->position = next;
         update_road();
+        if ((properties[p->position] & 0xF0) == 0xD0) {  /* destination */
+            if (!((0x01 << (properties[p->position] & 0x0F)) & p->visited)) {   /* not already acquired */
+                lcd_clear();
+                lcd_setpos(0,0);
+                lcd_writestr("You visited");
+                lcd_setpos(1,0);
+                lcd_writestr(destinations[properties[p->position] & 0x0F]);
+                __delay_ms(2000);
+            }
+        }
         __delay_ms(500);
+    }
+    if ((properties[p->position] & 0xF0) == 0xA0) { /* skip ahead */
+        spaces = properties[p->position] & 0x0F;
+        for (ct = 0; ct < spaces; ++ct) {
+            uint8_t next = map[p->position];
+            if (0x80 & next) {  /* next is disk */
+                lcd_setpos(1,0);
+                char out[17];
+
+                next = disk_map(next & 0x03, p->position);
+                sprintf(out, "%d, %d", next, p->position);
+                lcd_writestr(out);
+            }
+            p->position = next;
+            update_road();
+            __delay_ms(500);
+        }
     }
 }
 
